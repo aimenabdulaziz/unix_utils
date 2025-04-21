@@ -5,7 +5,7 @@ use clap::Parser;
 struct Args {
     // Flag for the newline
     // if true, don't print the newline
-    #[arg(short)]
+    #[arg(short, help = "Do not output the trailing newline")]
     n: bool,
 
     // Positional arguments for the string
