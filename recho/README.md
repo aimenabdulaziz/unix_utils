@@ -1,10 +1,13 @@
-NAME
-recho - display a line of text
+# NAME
 
-SYNOPSIS
-recho [-n] [STRING]...
+**recho** - display a line of text
 
-DESCRIPTION
+# SYNOPSIS
+
+**recho** [-n] [STRING] ...
+
+# DESCRIPTION
+
 Echo the STRING(s) to standard output.
 
-       -n     do not output the trailing newline
+> -n: do not output the trailing newline
