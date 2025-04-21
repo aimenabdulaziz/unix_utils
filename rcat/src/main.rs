@@ -19,14 +19,41 @@ struct Args {
     // List of files
     files: Option<Vec<String>>,
 }
+fn handle_error(e: io::Error, context: &str, error_code: i32) -> ! {
+    eprintln!("{}: {}", context, e);
+    std::process::exit(error_code);
+}
 
-fn read_from_stdin(all_contents: &mut String) -> io::Result<()> {
+fn print_numbered_content(contents: &str, args: &Args, prev_blank: &mut bool, line_num: &mut i32) {
+    for line in contents.lines() {
+        let is_blank: bool = line.trim().is_empty();
+
+        if args.s && is_blank && *prev_blank {
+            continue;
+        }
+
+        // flag b takes precedence over flag n
+        let print_line_num = if args.b { !is_blank } else { args.n };
+
+        if print_line_num {
+            println!("{:>6}\t{}", *line_num, line);
+            *line_num += 1;
+        } else {
+            println!("{}", line);
+        }
+        *prev_blank = is_blank;
+    }
+}
+
+fn read_from_stdin(args: &Args, prev_blank: &mut bool) -> io::Result<()> {
+    let mut line_num = 1; // Start at 1 for each stdin session
     let mut input = String::new();
+
     loop {
         match io::stdin().read_line(&mut input) {
             Ok(0) => break, // EOF reached
             Ok(_) => {
-                print!("{input}");
+                print_numbered_content(&input, args, prev_blank, &mut line_num);
                 input.clear();
             }
             Err(e) => return Err(e),
@@ -35,32 +62,27 @@ fn read_from_stdin(all_contents: &mut String) -> io::Result<()> {
     Ok(())
 }
 
-fn handle_error(e: io::Error, context: &str, error_code: i32) -> ! {
-    eprintln!("{}: {}", context, e);
-    std::process::exit(error_code);
-}
-
-fn process_input(input: &str, args: &Args) -> String {
-    todo!()
-}
-
 fn main() {
     let args = Args::parse();
-    let mut all_contents = String::new();
+    let mut prev_blank = false;
 
-    match args.files {
+    match &args.files {
         Some(files) => {
             for file in files {
                 if file == "-" {
-                    if let Err(e) = read_from_stdin(&mut all_contents) {
+                    if let Err(e) = read_from_stdin(&args, &mut prev_blank) {
                         handle_error(e, "Error reading from stdin", 1);
                     }
                 } else {
                     match fs::read_to_string(file) {
                         Ok(contents) => {
-                            all_contents.push_str(&contents);
-                            print!("{all_contents}");
-                            all_contents.clear();
+                            let mut line_num = 1; // Start at 1 for each file
+                            print_numbered_content(
+                                &contents,
+                                &args,
+                                &mut prev_blank,
+                                &mut line_num,
+                            );
                         }
                         Err(e) => {
                             handle_error(e, "Error reading file", 2);
@@ -71,19 +93,9 @@ fn main() {
         }
         _ => {
             // Read from stdin if no files are given
-            if let Err(e) = read_from_stdin(&mut all_contents) {
+            if let Err(e) = read_from_stdin(&args, &mut prev_blank) {
                 handle_error(e, "Error reading from stdin", 3);
             }
         }
-    }
-
-    if args.b {
-        println!("found b")
-    }
-    if args.n {
-        println!("found n")
-    }
-    if args.s {
-        println!("found s")
     }
 }
