@@ -15,7 +15,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    if let Some(string) = args.string  {
+    if let Some(string) = args.string {
         print!("{}", string);
     }
 
