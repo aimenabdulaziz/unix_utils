@@ -26,7 +26,7 @@ fn read_from_stdin(all_contents: &mut String) -> io::Result<()> {
         match io::stdin().read_line(&mut input) {
             Ok(0) => break, // EOF reached
             Ok(_) => {
-                all_contents.push_str(&input);
+                print!("{input}");
                 input.clear();
             }
             Err(e) => return Err(e),
@@ -38,6 +38,10 @@ fn read_from_stdin(all_contents: &mut String) -> io::Result<()> {
 fn handle_error(e: io::Error, context: &str, error_code: i32) -> ! {
     eprintln!("{}: {}", context, e);
     std::process::exit(error_code);
+}
+
+fn process_input(input: &str, args: &Args) -> String {
+    todo!()
 }
 
 fn main() {
@@ -55,6 +59,8 @@ fn main() {
                     match fs::read_to_string(file) {
                         Ok(contents) => {
                             all_contents.push_str(&contents);
+                            print!("{all_contents}");
+                            all_contents.clear();
                         }
                         Err(e) => {
                             handle_error(e, "Error reading file", 2);
@@ -70,7 +76,6 @@ fn main() {
             }
         }
     }
-    print!("{}", all_contents);
 
     if args.b {
         println!("found b")
