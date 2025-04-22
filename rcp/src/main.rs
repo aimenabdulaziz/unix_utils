@@ -63,18 +63,34 @@ fn is_same_file(src: &str, dst: &str) -> bool {
     false
 }
 
+fn get_target_path(target: &str, source: &str) -> String {
+    let target_path = Path::new(target);
+    if target_path.is_dir() {
+        // If target is a directory, append the source filename to it
+        let source_name = Path::new(source)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+        format!("{}/{}", target.trim_end_matches('/'), source_name)
+    } else {
+        target.to_string()
+    }
+}
+
 fn can_copy(args: &Args) -> bool {
+    let target_path = get_target_path(&args.target_file, &args.source_file);
+
     // Check if source and target are the same file
-    if file_exists(&args.target_file) && is_same_file(&args.source_file, &args.target_file) {
+    if file_exists(&target_path) && is_same_file(&args.source_file, &target_path) {
         eprintln!(
             "rcp: {} and {} are identical (not copied).",
-            args.source_file, args.target_file
+            args.source_file, target_path
         );
         return false;
     }
 
     // If target doesn't exist, we can copy
-    if !file_exists(&args.target_file) {
+    if !file_exists(&target_path) {
         return true;
     }
 
@@ -84,7 +100,7 @@ fn can_copy(args: &Args) -> bool {
     }
 
     if args.i {
-        return confirmation_received(&args.target_file);
+        return confirmation_received(&target_path);
     }
 
     // Default is to overwrite if -f is set or no flags are provided
@@ -121,16 +137,18 @@ fn main() {
         std::process::exit(1);
     }
 
+    let target_path = get_target_path(&args.target_file, &args.source_file);
+
     if !can_copy(&args) {
         std::process::exit(0);
     }
 
-    if let Err(e) = copy_file(&args.source_file, &args.target_file, args.v) {
+    if let Err(e) = copy_file(&args.source_file, &target_path, args.v) {
         handle_error(
             e,
             &format!(
                 "rcp: failed to copy {} to {}",
-                &args.source_file, &args.target_file
+                &args.source_file, &target_path
             ),
             1,
         );

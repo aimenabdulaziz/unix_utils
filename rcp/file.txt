@@ -1,0 +1,7 @@
+cts an attempt to copy a file to itself, the copy will fail.
+
+     The following options are available:
+
+     -f    For each existing destination pathname, remove it and create a new file,
+           without prompting for confirmation regardless of its permissions.
+           (The -f option overrides any
