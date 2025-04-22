@@ -86,7 +86,7 @@ fn can_copy(args: &Args) -> bool {
             "rcp: {} and {} are identical (not copied).",
             args.source_file, target_path
         );
-        return false;
+        std::process::exit(1);
     }
 
     // If target doesn't exist, we can copy
@@ -96,11 +96,12 @@ fn can_copy(args: &Args) -> bool {
 
     // Handle flags with proper precedence
     if args.n {
-        return false;
+        eprintln!("{target_path} not overwritten");
+        std::process::exit(2);
     }
 
-    if args.i {
-        return confirmation_received(&target_path);
+    if args.i && !confirmation_received(&target_path) {
+        std::process::exit(2);
     }
 
     // Default is to overwrite if -f is set or no flags are provided
